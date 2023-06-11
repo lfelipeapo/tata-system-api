@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from urllib.parse import unquote
 from flask_cors import CORS
-from controllers.consultas_juridicas import ConsultasController
+from controllers.consultas_juridicas import ConsultasJuridicasController
 from controllers.clientes import ClientesController
 
 app = Flask(__name__)

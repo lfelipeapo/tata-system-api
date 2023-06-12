@@ -1,6 +1,5 @@
-from flask import request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import UniqueConstraint, or_, and_
+from sqlalchemy import UniqueConstraint
 from datetime import datetime, time
 
 db = SQLAlchemy()
@@ -12,6 +11,7 @@ class ConsultaJuridica(db.Model):
     data_consulta = db.Column(db.Date, nullable=False)
     horario_consulta = db.Column(db.Time, nullable=False)
     detalhes_consulta = db.Column(db.String(200))
+    cliente_id = db.Column(db.Integer, db.ForeignKey('cliente.id'), nullable=True)
 
     UniqueConstraint('cpf_cliente', 'data_consulta', name='consulta_unico')
 
@@ -23,6 +23,10 @@ class ConsultaJuridica(db.Model):
         self.data_consulta = datetime.strptime(dados['data_consulta'], '%d/%m/%Y').date()
         self.horario_consulta = datetime.strptime(dados['horario_consulta'], '%H:%M').time()
         self.detalhes_consulta = dados['detalhes_consulta']
+
+        cliente = Cliente.query.filter_by(cpf_do_cliente=self.cpf_cliente).first()
+        if cliente:
+            self.cliente = cliente
 
     @staticmethod
     def valida_data(data_str):

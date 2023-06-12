@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from datetime import datetime
-from model import db, ConsultaJuridica
+from models import db, ConsultaJuridica, Cliente
 
 class ConsultaJuridicaController:
     def criar_consulta(self):
@@ -16,8 +16,15 @@ class ConsultaJuridicaController:
             if not nova_consulta.valida_consulta_periodo(cpf_cliente, data_consulta, nova_consulta.horario_consulta):
                 return jsonify({'mensagem': 'Já existe uma consulta agendada para este CPF neste período'}), 409
             
-            db.session.add(nova_consulta)
+            cliente = Cliente.query.filter_by(cpf_do_cliente=cpf_cliente).first()
+            if not cliente:
+                cliente = Cliente(nova_consulta.nome_cliente, cpf_cliente)
+            
+            cliente.consultas.append(nova_consulta)
+            
+            db.session.add(cliente)
             db.session.commit()
+            
             return jsonify({'mensagem': 'Consulta Jurídica criada'}), 201
         except ValueError as e:
             return jsonify({'mensagem': str(e)}), 422

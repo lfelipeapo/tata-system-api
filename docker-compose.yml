@@ -4,8 +4,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    command: sh -c "dockerize -wait tcp://db:5432 -timeout 60s && flask db init && flask db migrate && flask run --host 0.0.0.0 --port 5000 --reload"
     ports:
       - '5000:5000'
+    volumes:
+      - .:/app
     depends_on:
       - db
   db:
@@ -16,4 +19,9 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: tata
     volumes:
-      - ./database:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+volumes:
+  db_data:

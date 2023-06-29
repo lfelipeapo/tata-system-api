@@ -11,13 +11,16 @@ services:
       - .:/app
     depends_on:
       - db
+    environment:
+      - DOCKER_ENV=True
   db:
     image: postgres:13
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: tata
+      - DOCKER_ENV=True
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=tata
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:

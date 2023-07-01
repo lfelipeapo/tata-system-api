@@ -4,9 +4,11 @@ from flask_migrate import Migrate
 from flask_openapi3 import OpenAPI, Info, Tag
 from flask_sqlalchemy import SQLAlchemy
 from models.database import db_url
+from models.fuso_horario import exp
 from models.consultas_juridicas import ConsultaJuridica
 from models.clientes import Cliente
 from models.users import User
+import jwt
 from controllers import *
 from schemas import *
 
@@ -193,14 +195,20 @@ def create_user(form: UserSchema):
 
 
 @app.post('/user/authenticate', tags=[usuario_tag],
-          responses={"200": MensagemResposta, "401": MensagemResposta})
+          responses={"200": UserViewSchema, "401": MensagemResposta})
 def authenticate_user(query: UserAuthenticateSchema):
     """Realiza a autenticação de usuário
 
     Retorna uma mensagem de sucesso ou dados inválidos.
     """
-    if users_controller.authenticate_user(query.username, query.password):
-        return {'mensagem': 'Usuário autenticado com sucesso'}, 200
+    user = users_controller.authenticate_user(query.username, query.password)
+    if user:
+        payload = {
+            'user_id': user['id'],
+            'exp': exp
+        }
+        token = jwt.encode(payload, user['password'], algorithm='HS256')
+        return {'token': token}, 200
     else:
         return {'mensagem': 'Dados de usuário ou senha inválidos'}, 401
 

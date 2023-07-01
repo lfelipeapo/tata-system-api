@@ -29,7 +29,7 @@ class UserController:
                 return {'mensagem': "Usuário ou senha são obrigatórios"}, 400
             user = session.query(User).filter_by(username=username).first()
             if user and user.check_password(password):
-                return True
+                return self.apresenta_usuario(user)
             return False
         except Exception as e:
             session.rollback()

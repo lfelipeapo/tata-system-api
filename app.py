@@ -53,16 +53,16 @@ def home():
 
 @app.post('/consulta', tags=[consulta_tag],
           responses={"200": ConsultaJuridicaViewSchema, "400": MensagemResposta, "409": MensagemResposta, "422": MensagemResposta})
-def add_consulta(form: ConsultaJuridicaSchema):
+def add_consulta(body: ConsultaJuridicaSchema):
     """Cria uma nova Consulta Jurídica.
 
     Retorna uma representação de um nova consulta jurídica.
     """
-    consulta = ConsultaJuridica(form.nome_cliente, form.cpf_cliente,
-                                form.data_consulta, form.horario_consulta, form.detalhes_consulta)
+    consulta = ConsultaJuridica(body.nome_cliente, body.cpf_cliente,
+                                body.data_consulta, body.horario_consulta, body.detalhes_consulta)
     required_fields = ["nome_cliente", "cpf_cliente",
                        "data_consulta", "horario_consulta", "detalhes_consulta"]
-    if not all(getattr(form, field, None) for field in required_fields):
+    if not all(getattr(body, field, None) for field in required_fields):
         return {"mensagem": "Faltam parâmetros para realizar o cadastro"}, 400
 
     return consultas_controller.criar_consulta(consulta)
@@ -70,18 +70,18 @@ def add_consulta(form: ConsultaJuridicaSchema):
 
 @app.put('/consulta', tags=[consulta_tag],
          responses={"200": ConsultaJuridicaViewSchema, "404": MensagemResposta, "409": MensagemResposta, "422": MensagemResposta})
-def atualizar_consulta(form: ConsultaJuridicaAtualizadaSchema):
+def atualizar_consulta(body: ConsultaJuridicaAtualizadaSchema):
     """Atualiza uma Consulta Jurídica existente.
 
     Retorna uma consulta atualizada.
     """
 
-    return consultas_controller.atualizar_consulta(form.consulta_id,
-                                                   form.nome_cliente,
-                                                   form.cpf_cliente,
-                                                   form.data_consulta,
-                                                   form.horario_consulta,
-                                                   form.detalhes_consulta)
+    return consultas_controller.atualizar_consulta(body.consulta_id,
+                                                   body.nome_cliente,
+                                                   body.cpf_cliente,
+                                                   body.data_consulta,
+                                                   body.horario_consulta,
+                                                   body.detalhes_consulta)
 
 
 @app.delete('/consulta', tags=[consulta_tag],
@@ -94,10 +94,10 @@ def excluir_consulta(query: ConsultaJuridicaBuscaSchema):
 
 @app.get('/consultas', tags=[consulta_tag],
          responses={"200": ConsultaJuridicaListagemSchema, "404": MensagemResposta})
-def obter_consultas(query: ConsultasFiltradasBuscaSchema):
+def obter_consultas(body: ConsultasFiltradasBuscaSchema):
     """Obtém todas as consultas jurídicas ou consultas por data, nome do cliente ou CPF do cliente.
     """
-    return consultas_controller.obter_consultas(query.data_consulta, query.nome_cliente, query.cpf)
+    return consultas_controller.obter_consultas(body.data_consulta, body.nome_cliente, body.cpf)
 
 
 @app.get('/consultas/hoje', tags=[consulta_tag],
@@ -126,28 +126,28 @@ def obter_consulta_por_id(query: ConsultaJuridicaBuscaSchema):
 
 @app.post('/cliente', tags=[cliente_tag],
           responses={"200": ClienteViewSchema, "409": MensagemResposta, "404": MensagemResposta, "400": MensagemResposta, "422": MensagemResposta})
-def criar_cliente(form: ClienteSchema):
+def criar_cliente(body: ClienteSchema):
     """Cria um novo cliente.
 
     Retorna um novo cliente criado.
     """
 
     required_fields = ["nome_cliente", "cpf_cliente"]
-    if not all(getattr(form, field, None) for field in required_fields):
+    if not all(getattr(body, field, None) for field in required_fields):
         return {"mensagem": "Faltam parâmetros para realizar o cadastro"}, 400
-    cliente = Cliente(form.nome_cliente, form.cpf_cliente)
+    cliente = Cliente(body.nome_cliente, body.cpf_cliente)
 
     return clientes_controller.criar_cliente(cliente)
 
 
 @app.put('/cliente/', tags=[cliente_tag],
          responses={"200": ClienteViewSchema, "404": MensagemResposta, "409": MensagemResposta, "400": MensagemResposta, "422": MensagemResposta})
-def atualizar_cliente(form: ClienteAtualizadoSchema):
+def atualizar_cliente(body: ClienteAtualizadoSchema):
     """Atualiza um cliente existente.
 
     Retorna uma representação de um cliente atualizado.
     """
-    return clientes_controller.atualizar_cliente(form.cliente_id, form.nome_cliente, form.cpf_cliente)
+    return clientes_controller.atualizar_cliente(body.cliente_id, body.nome_cliente, body.cpf_cliente)
 
 
 @app.delete('/cliente/', tags=[cliente_tag],
@@ -162,15 +162,15 @@ def excluir_cliente(query: ClienteBuscaSchema):
 
 @app.get('/clientes', tags=[cliente_tag],
          responses={"200": ClienteListagemSchema, "404": MensagemResposta, "422": MensagemResposta})
-def obter_clientes(query: ClientesFiltradosSchema):
+def obter_clientes(body: ClientesFiltradosSchema):
     """Obtém todos os clientes ou clientes filtrados por nome, CPF, data de cadastro ou data de atualização.
 
     Retorna uma lista de clientes.
     """
-    return clientes_controller.obter_clientes(query.nome,
-                                              query.cpf,
-                                              query.data_cadastro,
-                                              query.data_atualizacao
+    return clientes_controller.obter_clientes(body.nome,
+                                              body.cpf,
+                                              body.data_cadastro,
+                                              body.data_atualizacao
                                               )
 
 
@@ -186,22 +186,22 @@ def obter_cliente_por_id(query: ClienteBuscaSchema):
 
 @app.post('/user/create', tags=[usuario_tag],
           responses={"201": UserViewSchema, "400": MensagemResposta, "422": MensagemResposta})
-def create_user(form: UserSchema):
+def create_user(body: UserSchema):
     """Cria um usuário.
 
     Retorna uma representação do usuário salvo no banco de dados.
     """
-    return users_controller.create_user(form.username, form.password, form.name, form.image)
+    return users_controller.create_user(body.username, body.password, body.name, body.image)
 
 
 @app.post('/user/authenticate', tags=[usuario_tag],
           responses={"200": UserViewSchema, "401": MensagemResposta})
-def authenticate_user(query: UserAuthenticateSchema):
+def authenticate_user(body: UserAuthenticateSchema):
     """Realiza a autenticação de usuário
 
     Retorna uma mensagem de sucesso ou dados inválidos.
     """
-    user = users_controller.authenticate_user(query.username, query.password)
+    user = users_controller.authenticate_user(body.username, body.password)
     if user:
         payload = {
             'user_id': user['id'],
@@ -215,12 +215,12 @@ def authenticate_user(query: UserAuthenticateSchema):
 
 @app.put('/user/', tags=[usuario_tag],
          responses={"200": UserViewSchema, "404": MensagemResposta, "409": MensagemResposta, "400": MensagemResposta, "422": MensagemResposta})
-def atualizar_user(form: UserAtualizadoSchema):
+def atualizar_user(body: UserAtualizadoSchema):
     """Atualiza um usuário existente.
 
     Retorna uma representação de um usuário atualizado.
     """
-    return users_controller.atualizar_user(form.id, form.username, form.password, form.name, form.image)
+    return users_controller.atualizar_user(body.id, body.username, body.password, body.name, body.image)
 
 
 @app.delete('/user/', tags=[usuario_tag],

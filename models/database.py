@@ -19,7 +19,7 @@ else:
     db_url = 'postgresql+psycopg2://postgres:postgres@localhost:5432/tata'
 
 # cria a engine de conexão com o banco
-engine = create_engine(db_url)
+engine = create_engine(db_url, pool_size=50, max_overflow=0)
 
 # Instancia um criador de seção com o banco
 Session = sessionmaker(bind=engine)

@@ -16,6 +16,10 @@ class ClientesController:
             if not nome_cliente or not cpf_cliente:
                 return {'mensagem': 'Nome do cliente e CPF do cliente são obrigatórios'}, 400
 
+
+            if len(cpf_cliente) > 11:
+                    return {"mensagem": "Digite apenas números. O CPF deve ter no máximo 11 caracteres."}, 400
+            
             cliente_existente = session.query(Cliente).filter_by(
                 cpf_cliente=cpf_cliente).first()
             if cliente_existente:
@@ -45,6 +49,8 @@ class ClientesController:
                 return {'mensagem': 'Cliente não encontrado'}, 404
 
             if cpf_cliente:
+                if len(cpf_cliente) > 11:
+                    return {"mensagem": "Digite apenas números. O CPF deve ter no máximo 11 caracteres."}, 400
                 cliente_existente = session.query(Cliente).filter(
                     Cliente.cpf_cliente == cpf_cliente, Cliente.id != cliente_id).first()
                 if cliente_existente:

@@ -51,7 +51,7 @@ def home():
     return redirect('/openapi')
 
 
-@app.post('/consulta', tags=[consulta_tag],
+@app.post('/consulta/', tags=[consulta_tag],
           responses={"200": ConsultaJuridicaViewSchema, "400": MensagemResposta, "409": MensagemResposta, "422": MensagemResposta})
 def add_consulta(body: ConsultaJuridicaSchema):
     """Cria uma nova Consulta Jurídica.
@@ -68,7 +68,7 @@ def add_consulta(body: ConsultaJuridicaSchema):
     return consultas_controller.criar_consulta(consulta)
 
 
-@app.put('/consulta', tags=[consulta_tag],
+@app.put('/consulta/', tags=[consulta_tag],
          responses={"200": ConsultaJuridicaViewSchema, "404": MensagemResposta, "409": MensagemResposta, "422": MensagemResposta})
 def atualizar_consulta(body: ConsultaJuridicaAtualizadaSchema):
     """Atualiza uma Consulta Jurídica existente.
@@ -84,7 +84,7 @@ def atualizar_consulta(body: ConsultaJuridicaAtualizadaSchema):
                                                    body.detalhes_consulta)
 
 
-@app.delete('/consulta', tags=[consulta_tag],
+@app.delete('/consulta/', tags=[consulta_tag],
             responses={"200": MensagemResposta, "404": MensagemResposta})
 def excluir_consulta(query: ConsultaJuridicaBuscaSchema):
     """Exclui uma Consulta Jurídica.
@@ -92,7 +92,7 @@ def excluir_consulta(query: ConsultaJuridicaBuscaSchema):
     return consultas_controller.excluir_consulta(query.consulta_id)
 
 
-@app.get('/consultas', tags=[consulta_tag],
+@app.get('/consultas/', tags=[consulta_tag],
          responses={"200": ConsultaJuridicaListagemSchema, "404": MensagemResposta})
 def obter_consultas(body: ConsultasFiltradasBuscaSchema):
     """Obtém todas as consultas jurídicas ou consultas por data, nome do cliente ou CPF do cliente.
@@ -100,7 +100,7 @@ def obter_consultas(body: ConsultasFiltradasBuscaSchema):
     return consultas_controller.obter_consultas(body.data_consulta, body.nome_cliente, body.cpf)
 
 
-@app.get('/consultas/hoje', tags=[consulta_tag],
+@app.get('/consultas/hoje/', tags=[consulta_tag],
          responses={"200": ConsultaJuridicaListagemSchema, "404": MensagemResposta})
 def obter_consultas_hoje():
     """Obtém as consultas jurídicas de hoje.
@@ -108,7 +108,7 @@ def obter_consultas_hoje():
     return consultas_controller.obter_consultas_hoje()
 
 
-@app.get('/consultas/horario', tags=[consulta_tag],
+@app.get('/consultas/horario/', tags=[consulta_tag],
          responses={"200": ConsultaJuridicaListagemSchema, "400": MensagemResposta, "404": MensagemResposta})
 def obter_consultas_horario(query: ConsultaJuridicaBuscaPorDataEHoraSchema):
     """Obtém as consultas jurídicas em um horário específico para determinada data.
@@ -116,7 +116,7 @@ def obter_consultas_horario(query: ConsultaJuridicaBuscaPorDataEHoraSchema):
     return consultas_controller.obter_consultas_horario(query.data_consulta, query.horario_consulta)
 
 
-@app.get('/consulta', tags=[consulta_tag],
+@app.get('/consulta/', tags=[consulta_tag],
          responses={"200": ConsultaJuridicaViewSchema, "404": MensagemResposta})
 def obter_consulta_por_id(query: ConsultaJuridicaBuscaSchema):
     """Obtém uma consulta jurídica pelo ID.
@@ -124,7 +124,7 @@ def obter_consulta_por_id(query: ConsultaJuridicaBuscaSchema):
     return consultas_controller.obter_consulta_por_id(query.consulta_id)
 
 
-@app.post('/cliente', tags=[cliente_tag],
+@app.post('/cliente/', tags=[cliente_tag],
           responses={"200": ClienteViewSchema, "409": MensagemResposta, "404": MensagemResposta, "400": MensagemResposta, "422": MensagemResposta})
 def criar_cliente(body: ClienteSchema):
     """Cria um novo cliente.
@@ -160,7 +160,7 @@ def excluir_cliente(query: ClienteBuscaSchema):
     return clientes_controller.excluir_cliente(query.cliente_id)
 
 
-@app.get('/clientes', tags=[cliente_tag],
+@app.get('/clientes/', tags=[cliente_tag],
          responses={"200": ClienteListagemSchema, "404": MensagemResposta, "422": MensagemResposta})
 def obter_clientes(body: ClientesFiltradosSchema):
     """Obtém todos os clientes ou clientes filtrados por nome, CPF, data de cadastro ou data de atualização.
@@ -184,7 +184,7 @@ def obter_cliente_por_id(query: ClienteBuscaSchema):
     return clientes_controller.obter_cliente_por_id(query.cliente_id)
 
 
-@app.post('/user/create', tags=[usuario_tag],
+@app.post('/user/create/', tags=[usuario_tag],
           responses={"201": UserViewSchema, "400": MensagemResposta, "422": MensagemResposta})
 def create_user(body: UserSchema):
     """Cria um usuário.
@@ -194,7 +194,7 @@ def create_user(body: UserSchema):
     return users_controller.create_user(body.username, body.password, body.name, body.image)
 
 
-@app.post('/user/authenticate', tags=[usuario_tag],
+@app.post('/user/authenticate/', tags=[usuario_tag],
           responses={"200": UserViewSchema, "401": MensagemResposta})
 def authenticate_user(body: UserAuthenticateSchema):
     """Realiza a autenticação de usuário
@@ -243,7 +243,7 @@ def obter_user_por_id(query: UserBuscaSchema):
     return users_controller.obter_user_por_id(query.id)
 
 
-@app.get('/users', tags=[usuario_tag],
+@app.get('/users/', tags=[usuario_tag],
          responses={"200": UsersListagemSchema, "404": MensagemResposta, "422": MensagemResposta})
 def obter_users():
     """Obtém todos os usuários do banco de dados.

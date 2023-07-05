@@ -162,15 +162,15 @@ def excluir_cliente(query: ClienteBuscaSchema):
 
 @app.get('/clientes', tags=[cliente_tag],
          responses={"200": ClienteListagemSchema, "404": MensagemResposta, "422": MensagemResposta})
-def obter_clientes(body: ClientesFiltradosSchema):
+def obter_clientes(query: ClientesFiltradosSchema):
     """Obtém todos os clientes ou clientes filtrados por nome, CPF, data de cadastro ou data de atualização.
 
     Retorna uma lista de clientes.
     """
-    return clientes_controller.obter_clientes(body.nome,
-                                              body.cpf,
-                                              body.data_cadastro,
-                                              body.data_atualizacao
+    return clientes_controller.obter_clientes(query.nome,
+                                              query.cpf,
+                                              query.data_cadastro,
+                                              query.data_atualizacao
                                               )
 
 

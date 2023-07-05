@@ -104,21 +104,20 @@ class ClientesController:
     def obter_clientes(self, nome: Union[str, None] = None, cpf: Union[str, None] = None, data_cadastro: Union[str, None] = None, data_atualizacao: Union[str, None] = None):
         session = Session()
         try:
-            clientes = session.query(Cliente)
+            query = session.query(Cliente)
 
             if nome:
-                clientes = clientes.filter(
-                    Cliente.nome_cliente.ilike(f'%{nome}%'))
-            elif cpf:
-                clientes = clientes.filter(Cliente.cpf_cliente == cpf)
-            elif data_cadastro:
+                query = query.filter(Cliente.nome_cliente.ilike(f'%{nome}%'))
+            if cpf:
+                query = query.filter(Cliente.cpf_cliente == cpf)
+            if data_cadastro:
                 data_cadastro = datetime.strptime(data_cadastro, '%d/%m/%Y').date()
-                clientes = clientes.filter(func.date(Cliente.data_cadastro) == data_cadastro)
-            elif data_atualizacao:
+                query = query.filter(func.date(Cliente.data_cadastro) == data_cadastro)
+            if data_atualizacao:
                 data_atualizacao = datetime.strptime(data_atualizacao, '%d/%m/%Y').date()
-                clientes = clientes.filter(func.date(Cliente.data_atualizacao) == data_atualizacao)
-            else:
-                clientes = clientes.all()
+                query = query.filter(func.date(Cliente.data_atualizacao) == data_atualizacao)
+
+            clientes = query.all()
 
             if not clientes:
                 return {'mensagem': 'Nenhum cliente encontrado para os parâmetros informados'}, 404

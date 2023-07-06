@@ -208,7 +208,7 @@ def authenticate_user(body: UserAuthenticateSchema):
             'exp': exp
         }
         token = jwt.encode(payload, user['password'], algorithm='HS256')
-        return {'token': token}, 200
+        return {'user_id': user['id'], 'token': token}, 200
     else:
         return {'mensagem': 'Dados de usuário ou senha inválidos'}, 401
 

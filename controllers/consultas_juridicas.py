@@ -10,8 +10,9 @@ class ConsultaJuridicaController:
 
     def criar_consulta(self, consulta: ConsultaJuridica):
         session = Session()
+        
         if not consulta:
-            return {'mensagem': 'Parâmetros obrigatórios não informados'}
+            return {'mensagem': 'Parâmetros obrigatórios não informados'}, 400
         try:
             if not consulta.valida_consulta_dia(consulta.cpf_cliente, consulta.data_consulta):
                 return {'mensagem': 'Já existe uma consulta agendada para este CPF nesta data'}, 409

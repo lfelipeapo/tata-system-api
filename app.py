@@ -57,12 +57,12 @@ def add_consulta(body: ConsultaJuridicaSchema):
 
     Retorna uma representação de um nova consulta jurídica.
     """
-    consulta = ConsultaJuridica(body.nome_cliente, body.cpf_cliente,
-                                body.data_consulta, body.horario_consulta, body.detalhes_consulta)
     required_fields = ["nome_cliente", "cpf_cliente",
                        "data_consulta", "horario_consulta"]
     if not all(getattr(body, field, None) for field in required_fields):
         return {"mensagem": "Faltam parâmetros para realizar o cadastro"}, 400
+    consulta = ConsultaJuridica(body.nome_cliente, body.cpf_cliente,
+                                body.data_consulta, body.horario_consulta, body.detalhes_consulta)
 
     return consultas_controller.criar_consulta(consulta)
 

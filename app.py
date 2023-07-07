@@ -43,7 +43,6 @@ users_controller = UserController()
 
 # Rotas
 
-
 @app.get('/', tags=[home_tag])
 def home():
     """Redireciona para /openapi, tela que permite a escolha do estilo de documentação.
@@ -61,7 +60,7 @@ def add_consulta(body: ConsultaJuridicaSchema):
     consulta = ConsultaJuridica(body.nome_cliente, body.cpf_cliente,
                                 body.data_consulta, body.horario_consulta, body.detalhes_consulta)
     required_fields = ["nome_cliente", "cpf_cliente",
-                       "data_consulta", "horario_consulta", "detalhes_consulta"]
+                       "data_consulta", "horario_consulta"]
     if not all(getattr(body, field, None) for field in required_fields):
         return {"mensagem": "Faltam parâmetros para realizar o cadastro"}, 400
 
@@ -94,10 +93,10 @@ def excluir_consulta(query: ConsultaJuridicaBuscaSchema):
 
 @app.get('/consultas', tags=[consulta_tag],
          responses={"200": ConsultaJuridicaListagemSchema, "404": MensagemResposta})
-def obter_consultas(body: ConsultasFiltradasBuscaSchema):
+def obter_consultas(query: ConsultasFiltradasBuscaSchema):
     """Obtém todas as consultas jurídicas ou consultas por data, nome do cliente ou CPF do cliente.
     """
-    return consultas_controller.obter_consultas(body.data_consulta, body.nome_cliente, body.cpf)
+    return consultas_controller.obter_consultas(query.data_consulta, query.nome_cliente, query.cpf)
 
 
 @app.get('/consultas/hoje', tags=[consulta_tag],

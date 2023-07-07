@@ -1,16 +1,9 @@
-from flask import request, jsonify
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 from models.consultas_juridicas import ConsultaJuridica 
 from models.clientes import Cliente 
 from models import Session
-from models.fuso_horario import saopaulo_tz, now_saopaulo
-from schemas.consultas_juridicas import (
-    ConsultaJuridicaSchema,
-    ConsultaJuridicaAtualizadaSchema,
-    ConsultaJuridicaListagemSchema,
-    ConsultaJuridicaViewSchema
-)
+from models.fuso_horario import now_saopaulo
 from typing import Union, List
 
 class ConsultaJuridicaController:
@@ -100,17 +93,25 @@ class ConsultaJuridicaController:
             return self.apresenta_consulta(consulta), 200
         except ValueError as e:
             return {'mensagem': str(e)}, 422
+        finally:
+            session.close()
 
     def excluir_consulta(self, consulta_id: int):
-        session = Session()
-        if not consulta_id:
-            return {'mensagem': 'Parâmetro Id é obrigatório'}, 400
-        consulta_juridica = session.query(ConsultaJuridica).get(consulta_id)
-        if not consulta_juridica:
-            return {'mensagem': 'Consulta Jurídica não encontrada'}, 404
-        session.delete(consulta_juridica)
-        session.commit()
-        return {'mensagem': 'Consulta Jurídica excluída'}, 200
+        try:
+            session = Session()
+            if not consulta_id:
+                return {'mensagem': 'Parâmetro Id é obrigatório'}, 400
+            consulta_juridica = session.query(ConsultaJuridica).get(consulta_id)
+            if not consulta_juridica:
+                return {'mensagem': 'Consulta Jurídica não encontrada'}, 404
+            session.delete(consulta_juridica)
+            session.commit()
+            return {'mensagem': 'Consulta Jurídica excluída'}, 200
+        except Exception as e:
+            session.rollback()
+            return {'mensagem': "Erro: " + str(e)}, 500
+        finally:
+            session.close()
 
     def obter_consultas(self, 
                         data: Union[str, None] = None, 
@@ -132,7 +133,10 @@ class ConsultaJuridicaController:
 
             return self.apresenta_consultas(consultas), 200
         except Exception as e:
+            session.rollback()
             return {'mensagem': 'Ocorreu um erro ao obter consultas: ' + str(e)}, 500
+        finally:
+            session.close()
 
     def obter_consultas_hoje(self):
         session = Session()
@@ -143,7 +147,10 @@ class ConsultaJuridicaController:
 
             return self.apresenta_consultas(consultas), 200
         except Exception as e:
+            session.rollback()
             return {'mensagem': 'Ocorreu um erro ao obter consultas: ' + str(e)}, 500
+        finally:
+            session.close()
 
     def obter_consultas_horario(self, data: Union[str, None] = None, horario: Union[str, None] = None):
         session = Session()
@@ -156,17 +163,26 @@ class ConsultaJuridicaController:
 
             return self.apresenta_consultas(consultas), 200
         except Exception as e:
+            session.rollback()
             return {'mensagem': 'Ocorreu um erro ao obter consultas por horário: ' + str(e)}, 500
-    
+        finally:
+            session.close()
+
     def obter_consulta_por_id(self, consulta_id: int):
         session = Session()
-        if not consulta_id:
-            return {'mensagem': 'Parâmetro Id é obrigatório'}, 400
-        consulta = session.query(ConsultaJuridica).get(consulta_id)
-        if not consulta:
-            return {'mensagem': 'Consulta Jurídica não encontrada'}, 404
-        
-        return self.apresenta_consulta(consulta), 200
+        try:
+            if not consulta_id:
+                return {'mensagem': 'Parâmetro Id é obrigatório'}, 400
+            consulta = session.query(ConsultaJuridica).get(consulta_id)
+            if not consulta:
+                return {'mensagem': 'Consulta Jurídica não encontrada'}, 404
+            
+            return self.apresenta_consulta(consulta), 200
+        except Exception as e:
+            session.rollback()
+            return {'mensagem': 'Ocorreu um erro ao obter a consulta: ' + str(e)}, 500
+        finally:
+            session.close()
     
     @staticmethod
     def apresenta_consulta(consulta: ConsultaJuridica):

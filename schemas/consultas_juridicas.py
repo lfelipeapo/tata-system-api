@@ -29,9 +29,9 @@ class ConsultaJuridicaBuscaPorDataEHoraSchema(BaseModel):
 class ConsultasFiltradasBuscaSchema(BaseModel):
     """ Define como deve ser a estrutura que representa a busca de consultas, esperando parâmetros ou não.
     """
-    data_consulta: str = "22/12/2022"
-    nome_cliente: str = "Antônio Silva"
-    cpf: str = "12345678900"
+    data_consulta: Optional[str] 
+    nome_cliente: Optional[str]
+    cpf: Optional[str]
 
 class ConsultaJuridicaAtualizadaSchema(BaseModel):
     """Define como é a estrutura de uma consulta jurídica atualizada"""

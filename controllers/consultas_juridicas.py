@@ -50,13 +50,12 @@ class ConsultaJuridicaController:
                            detalhes_consulta: Union[str, None] = None
                            ):
         session = Session()
-        if not consulta_id:
-            return {'mensagem': 'Parâmetro Id é obrigatório.'}
-        consulta = session.query(ConsultaJuridica).get(consulta_id)
-        if not consulta:
-            return {'mensagem': 'Consulta Jurídica não encontrada'}, 404
         try:
-
+            if not consulta_id:
+                return {'mensagem': 'Parâmetro Id é obrigatório.'}
+            consulta = session.query(ConsultaJuridica).get(consulta_id)
+            if not consulta:
+                return {'mensagem': 'Consulta Jurídica não encontrada'}, 404
             if cpf_cliente and data_consulta:
                 if not consulta.valida_consulta_dia(cpf_cliente, data_consulta):
                     return {'mensagem': 'Já existe uma consulta agendada para este CPF nesta data'}, 409
@@ -72,9 +71,15 @@ class ConsultaJuridicaController:
                     return {"mensagem": "Digite apenas números. O CPF deve ter no máximo 11 caracteres."}, 400
                 consulta.cpf_cliente = cpf_cliente
             if data_consulta and data_consulta != '': 
-                consulta.data_consulta = datetime.strptime(data_consulta, "%d-%m-%Y").date()
-            if horario_consulta and horario_consulta != '': 
-                consulta.horario_consulta = datetime.strptime(horario_consulta, "%H:%M").time()
+                if isinstance(data_consulta, str):
+                    consulta.data_consulta = datetime.strptime(data_consulta, "%d-%m-%Y").date()
+                else:
+                    consulta.data_consulta = data_consulta
+            if horario_consulta and horario_consulta != '':
+                if isinstance(horario_consulta, str): 
+                    consulta.horario_consulta = datetime.strptime(horario_consulta, "%H:%M").time()
+                else:
+                    consulta.horario_consulta = horario_consulta
             if detalhes_consulta: 
                 consulta.detalhes_consulta = detalhes_consulta
 
@@ -130,7 +135,7 @@ class ConsultaJuridicaController:
                 consultas = session.query(ConsultaJuridica).all()
 
             if not consultas:
-                return {'mensagem': 'Nenhuma consulta encontrada para os parâmetros informados'}, 404
+                return {'mensagem': 'Nenhuma consulta encontrada'}, 404
 
             return self.apresenta_consultas(consultas), 200
         except Exception as e:

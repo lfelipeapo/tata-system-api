@@ -16,7 +16,7 @@ CREATE TABLE consulta_juridica (
     horario_consulta TIME,
     detalhes_consulta VARCHAR(200),
     cliente_id INTEGER,
-    FOREIGN KEY (cliente_id) REFERENCES cliente (id),
+    FOREIGN KEY (cliente_id) REFERENCES cliente (id) ON DELETE CASCADE,
     CONSTRAINT consulta_unico UNIQUE (cpf_cliente, data_consulta)
 );
 

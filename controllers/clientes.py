@@ -120,7 +120,7 @@ class ClientesController:
             clientes = query.all()
 
             if not clientes:
-                return {'mensagem': 'Nenhum cliente encontrado para os parâmetros informados'}, 404
+                return {'mensagem': 'Nenhum cliente encontrado'}, 404
 
             return self.apresenta_clientes(clientes), 200
         except Exception as e:

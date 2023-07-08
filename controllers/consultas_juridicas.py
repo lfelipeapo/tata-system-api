@@ -14,11 +14,12 @@ class ConsultaJuridicaController:
         if not consulta:
             return {'mensagem': 'Parâmetros obrigatórios não informados'}, 400
         try:
-            if not consulta.valida_consulta_dia(consulta.cpf_cliente, consulta.data_consulta):
-                return {'mensagem': 'Já existe uma consulta agendada para este CPF nesta data'}, 409
-
-            if not consulta.valida_consulta_periodo(consulta.cpf_cliente, consulta.data_consulta, consulta.horario_consulta):
-                return {'mensagem': 'Já existe uma consulta agendada para este CPF neste período'}, 409
+            if consulta.cpf_cliente and consulta.data_consulta and consulta.horario_consulta:
+                if not consulta.valida_consulta_periodo(consulta.cpf_cliente, consulta.data_consulta, consulta.horario_consulta):
+                    return {'mensagem': 'Já existe uma consulta agendada para este CPF neste período'}, 409                
+            if consulta.cpf_cliente and consulta.data_consulta:
+                if not consulta.valida_consulta_dia(consulta.cpf_cliente, consulta.data_consulta):
+                    return {'mensagem': 'Já existe uma consulta agendada para este CPF nesta data'}, 409
             
             cliente = session.query(Cliente).filter_by(cpf_cliente=consulta.cpf_cliente).first()
             if not cliente:
@@ -34,9 +35,6 @@ class ConsultaJuridicaController:
         
         except Exception as e:
             return {'mensagem': str(e)}, 400
-        
-        except IntegrityError as e:
-            return {"mensagem": "Consulta idêntica já cadastrada na base"}, 409
 
         finally:
             session.close()  
@@ -50,19 +48,18 @@ class ConsultaJuridicaController:
                            detalhes_consulta: Union[str, None] = None
                            ):
         session = Session()
+        if not consulta_id:
+            return {'mensagem': 'Parâmetro Id é obrigatório.'}
+        consulta = session.query(ConsultaJuridica).get(consulta_id)
+        if not consulta:
+            return {'mensagem': 'Consulta Jurídica não encontrada'}, 404
         try:
-            if not consulta_id:
-                return {'mensagem': 'Parâmetro Id é obrigatório.'}
-            consulta = session.query(ConsultaJuridica).get(consulta_id)
-            if not consulta:
-                return {'mensagem': 'Consulta Jurídica não encontrada'}, 404
+            if cpf_cliente and data_consulta and horario_consulta:
+                if not consulta.valida_consulta_periodo(cpf_cliente, data_consulta, horario_consulta):
+                    return {'mensagem': 'Já existe uma consulta agendada para este CPF neste período'}, 409                
             if cpf_cliente and data_consulta:
                 if not consulta.valida_consulta_dia(cpf_cliente, data_consulta):
                     return {'mensagem': 'Já existe uma consulta agendada para este CPF nesta data'}, 409
-
-            if cpf_cliente and horario_consulta and horario_consulta:
-                if not consulta.valida_consulta_periodo(cpf_cliente, data_consulta, horario_consulta):
-                    return {'mensagem': 'Já existe uma consulta agendada para este CPF neste período'}, 409
 
             if nome_cliente: 
                 consulta.nome_cliente = nome_cliente

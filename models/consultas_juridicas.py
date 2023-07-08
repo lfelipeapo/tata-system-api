@@ -10,8 +10,8 @@ class ConsultaJuridica(Base):
     __tablename__ = 'consulta_juridica'
 
     id = Column("pk_consulta", Integer, primary_key=True)
-    nome_cliente = Column(String(80), unique=True)
-    cpf_cliente = Column(String(11), unique=True)
+    nome_cliente = Column(String(80))
+    cpf_cliente = Column(String(11))
     data_consulta = Column(Date)
     horario_consulta = Column(Time)
     detalhes_consulta = Column(String(200))

@@ -10,8 +10,8 @@ CREATE TABLE cliente (
 -- Criação da tabela ConsultaJuridica
 CREATE TABLE consulta_juridica (
     pk_consulta SERIAL PRIMARY KEY,
-    nome_cliente VARCHAR(80) UNIQUE,
-    cpf_cliente VARCHAR(11) UNIQUE,
+    nome_cliente VARCHAR(80),
+    cpf_cliente VARCHAR(11),
     data_consulta DATE,
     horario_consulta TIME,
     detalhes_consulta VARCHAR(200),

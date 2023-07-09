@@ -125,7 +125,7 @@ class ConsultaJuridicaController:
             if data:
                 consultas = session.query(ConsultaJuridica).filter_by(data_consulta=datetime.strptime(data, '%d/%m/%Y').date()).all()
             elif nome:
-                consultas = session.query(ConsultaJuridica).filter_by(nome_cliente=nome).all()
+                consultas = session.query(ConsultaJuridica).filter(ConsultaJuridica.nome_cliente.ilike(f'%{nome}%')).all()
             elif cpf:
                 consultas = session.query(ConsultaJuridica).filter_by(cpf_cliente=cpf).all()
             else:

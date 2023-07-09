@@ -1,6 +1,7 @@
 from flask import jsonify, request
 from datetime import datetime
 from models.clientes import Cliente
+from models.consultas_juridicas import ConsultaJuridica
 from models import Session
 from models.fuso_horario import saopaulo_tz, now_saopaulo
 from typing import List, Union
@@ -76,10 +77,15 @@ class ClientesController:
         session = Session()
         try:
             cliente = session.query(Cliente).get(cliente_id)
+            if cliente:
+                consulta = session.query(ConsultaJuridica).filter_by(cliente_id=cliente_id).first()
+                if not consulta:
+                    {'mensagem': 'Consulta não encontrada'}, 404
             if not cliente:
                 return {'mensagem': 'Cliente não encontrado'}, 404
 
             session.delete(cliente)
+            session.delete(consulta)
             session.commit()
 
             return {'mesangem': 'Cliente excluído com sucesso'}, 200

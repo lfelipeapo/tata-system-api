@@ -35,7 +35,7 @@ class ConsultaJuridica(Base):
         try:
             session = Session()
             if not self.valida_data(data_consulta) or not self.valida_hora(horario_consulta):
-                return {'mensagem':'Formato de data ou horário inválido'}, 400
+                raise ValueError('Formato de data ou horário inválido')
             self.nome_cliente = nome_cliente
             self.cpf_cliente = cpf_cliente
             self.data_consulta = datetime.strptime(

@@ -61,8 +61,11 @@ def add_consulta(body: ConsultaJuridicaSchema):
                        "data_consulta", "horario_consulta"]
     if not all(getattr(body, field, None) for field in required_fields):
         return {"mensagem": "Faltam parâmetros para realizar o cadastro"}, 400
-    consulta = ConsultaJuridica(body.nome_cliente, body.cpf_cliente,
-                                body.data_consulta, body.horario_consulta, body.detalhes_consulta)
+    try:
+        consulta = ConsultaJuridica(body.nome_cliente, body.cpf_cliente,
+                                    body.data_consulta, body.horario_consulta, body.detalhes_consulta)
+    except ValueError:
+        return {"mensagem": "Dados informados inválidos ou com erro"}, 400
 
     return consultas_controller.criar_consulta(consulta)
 
@@ -134,7 +137,10 @@ def criar_cliente(body: ClienteSchema):
     required_fields = ["nome_cliente", "cpf_cliente"]
     if not all(getattr(body, field, None) for field in required_fields):
         return {"mensagem": "Faltam parâmetros para realizar o cadastro"}, 400
-    cliente = Cliente(body.nome_cliente, body.cpf_cliente)
+    try:
+        cliente = Cliente(body.nome_cliente, body.cpf_cliente)
+    except ValueError:
+        return {"mensagem": "Dados informados inválidos ou com erro"}, 400
 
     return clientes_controller.criar_cliente(cliente)
 

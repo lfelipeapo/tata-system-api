@@ -10,6 +10,9 @@ class UserController:
             if not username or not password or not name:
                 return {'mensagem': 'Dados de usuários faltantes'}, 400
             user = User(username=username, name=name, image=image)
+            existing_user = session.query(User).filter(User.username == username).first()
+            if existing_user and existing_user.id != user.id:
+                return {'mensagem': 'Nome de usuário já está em uso'}, 409
             user.set_password(password)
             session.add(user)
             session.commit()
@@ -78,7 +81,7 @@ class UserController:
             session.delete(user)
             session.commit()
 
-            return {'mesangem': 'Usuário ' + str(user.id) + ' excluído com sucesso'}, 200
+            return {'mensagem': 'Usuário ' + str(user.id) + ' excluído com sucesso'}, 200
         except Exception as e:
             session.rollback()
             return {'mensagem': str(e)}, 422

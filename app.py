@@ -8,11 +8,12 @@ from models.fuso_horario import exp
 from models.consultas_juridicas import ConsultaJuridica
 from models.clientes import Cliente
 from models.users import User
+from models.documentos import Documento
 import jwt
 from controllers import *
 from schemas import *
 
-info = Info(title="Tata System API", version='1.0.0')
+info = Info(title="Thata System API", version='1.0.0')
 app = OpenAPI(__name__, info=info)
 db = SQLAlchemy()
 migrate = Migrate(app, db)
@@ -33,12 +34,14 @@ consulta_tag = Tag(name="Consulta Jurídica",
                    description="Criação, atualização, exclusão e obtenção de consultas jurídicas")
 cliente_tag = Tag(
     name="Cliente", description="Criação, atualização, exclusão e obtenção de clientes")
+documento_tag = Tag(name="Documento", description="Criação, atualização, exclusão e obtenção de documentos")
 usuario_tag = Tag(
     name="Usuário", description="Criação, atualização, exclusão, obtenção e autenticação de usuários")
 
 # Inicializar os controladores
 consultas_controller = ConsultaJuridicaController()
 clientes_controller = ClientesController()
+documentos_controller = DocumentoController()
 users_controller = UserController()
 
 # Rotas
@@ -188,6 +191,44 @@ def obter_cliente_por_id(query: ClienteBuscaSchema):
     """
     return clientes_controller.obter_cliente_por_id(query.cliente_id)
 
+@app.post('/documento', tags=[documento_tag],
+          responses={"200": DocumentoViewSchema, "400": MensagemResposta, "409": MensagemResposta, "422": MensagemResposta})
+def criar_documento(body: DocumentoSchema):
+    """Cria um novo Documento.
+
+    Retorna um novo documento criado.
+    """
+    return documentos_controller.criar_documento(Documento(**body))
+
+@app.put('/documento', tags=[documento_tag],
+         responses={"200": DocumentoViewSchema, "404": MensagemResposta, "409": MensagemResposta, "422": MensagemResposta})
+def atualizar_documento(body: DocumentoAtualizadoSchema):
+    """Atualiza um Documento existente.
+
+    Retorna uma representação de um documento atualizado.
+    """
+    return documentos_controller.atualizar_documento(**body)
+
+@app.delete('/documento', tags=[documento_tag],
+            responses={"200": MensagemResposta, "404": MensagemResposta})
+def excluir_documento(query: DocumentoBuscaSchema):
+    """Exclui um Documento.
+    """
+    return documentos_controller.excluir_documento(query.documento_id)
+
+@app.get('/documento', tags=[documento_tag],
+         responses={"200": DocumentoViewSchema, "404": MensagemResposta})
+def obter_documento_por_id(query: DocumentoBuscaSchema):
+    """Obtém um Documento pelo ID.
+    """
+    return documentos_controller.obter_documento_por_id(query.documento_id)
+
+@app.get('/documentos', tags=[documento_tag],
+         responses={"200": DocumentoListagemSchema, "404": MensagemResposta})
+def obter_todos_documentos():
+    """Obtém todos os Documentos.
+    """
+    return documentos_controller.obter_todos_documentos()
 
 @app.post('/user/create', tags=[usuario_tag],
           responses={"201": UserViewSchema, "400": MensagemResposta, "422": MensagemResposta})
@@ -197,7 +238,6 @@ def create_user(body: UserSchema):
     Retorna uma representação do usuário salvo no banco de dados.
     """
     return users_controller.create_user(body.username, body.password, body.name, body.image)
-
 
 @app.post('/user/authenticate', tags=[usuario_tag],
           responses={"200": UserViewSchema, "401": MensagemResposta})

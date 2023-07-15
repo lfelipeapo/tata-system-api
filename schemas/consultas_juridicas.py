@@ -1,8 +1,6 @@
 from pydantic import BaseModel, validator
-from datetime import date, datetime, time
+from datetime import date, time
 from typing import List, Optional
-
-
 
 class ConsultaJuridicaSchema(BaseModel):
     """ Define como deve ser a estrutura que representa uma consulta.

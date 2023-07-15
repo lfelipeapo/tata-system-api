@@ -7,6 +7,7 @@ from models.consultas_juridicas import ConsultaJuridica
 from models.clientes import Cliente
 from models.fuso_horario import now_saopaulo
 from models.database import engine, Session
+from models.documentos import Documento
 from models.users import User
 
 db_path = "database/"

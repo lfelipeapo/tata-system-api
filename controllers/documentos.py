@@ -1,8 +1,16 @@
+from typing import Union, List, Tuple
+from werkzeug.datastructures import FileStorage
+from werkzeug.utils import secure_filename
+from smb.SMBConnection import SMBConnection
+import socket
+from models.upload import documents
 from models.documentos import Documento
 from models import Session
-from typing import Union, List
+import os
+from dotenv import load_dotenv
 
 class DocumentoController:
+
     def criar_documento(self, documento: Documento):
         session = Session()
         
@@ -98,7 +106,63 @@ class DocumentoController:
             return {'mensagem': 'Ocorreu um erro ao obter os documentos: ' + str(e)}, 400
         finally:
             session.close()
-    
+
+    def upload_documento(self, documento: FileStorage, local_ou_samba: str) -> Tuple[dict, int]:
+        if not documento:
+            return {"mensagem": "Nenhum arquivo foi enviado"}, 400
+
+        if documento.filename == '':
+            return {"mensagem": "Nenhum arquivo foi selecionado"}, 400
+
+        if not self.allowed_file(documento.filename):
+            return {"mensagem": "Tipo de arquivo não permitido"}, 400
+
+        filename = secure_filename(documento.filename)
+
+        try:
+            if local_ou_samba == 'local':
+                file_path = os.path.join(documents.config.destination, filename)
+                documento.save(file_path)
+                if not os.path.exists(file_path):
+                    return {"mensagem": "Erro ao salvar o arquivo localmente"}, 500
+
+            elif local_ou_samba == 'samba':
+                load_dotenv()
+                server_name = os.getenv('SERVER_NAME')
+                username = os.getenv('USERNAME')
+                password = os.getenv('PASSWORD')
+                share_name = os.getenv('SHARENAME')
+                # samba_path = os.path.join(share_name, filename)
+                machine_name = os.getenv('MACHINE_NAME')
+                server_ip = os.getenv('SERVER_IP')
+                remote_path = os.getenv('REMOTE_PATH')
+
+                conn = SMBConnection(username, password, machine_name, server_name, domain='WORKGROUP', use_ntlm_v2=True)
+
+                if not conn.connect(server_ip, 445):
+                    return {"mensagem": "Erro ao conectar ao servidor Samba"}, 500
+
+                else:
+                    file_path = os.path.join(documents.config.destination, filename)
+                    documento.save(file_path)
+
+                    remote_file_path = os.path.join(remote_path, filename)
+
+                    with open(file_path, 'rb') as file_obj:
+                        conn.storeFile(share_name, remote_file_path, file_obj)
+
+                    files_on_samba = conn.listPath(share_name, remote_path)
+                if not any(file.filename == filename for file in files_on_samba):
+                    return {"mensagem": "Erro ao salvar o arquivo no samba"}, 500
+
+            else:
+                return {"mensagem": "Opção inválida para 'local_ou_samba'"}, 400
+
+            return {"mensagem": "Documento enviado com sucesso"}, 200
+
+        except Exception as e:
+            return {"mensagem": f"Ocorreu um erro: {e}"}, 500
+        
     @staticmethod
     def apresenta_documento(documento: Documento):
         return {
@@ -123,3 +187,7 @@ class DocumentoController:
                 "documento_url": documento.documento_url if documento.documento_url else None
             })
         return {"documentos": result}
+    
+    @staticmethod
+    def allowed_file(filename: str) -> bool:
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'pdf'}

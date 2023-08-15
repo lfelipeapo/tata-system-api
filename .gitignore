@@ -1,5 +1,6 @@
-migrations/
+/migrations
 __pycache__
 */__pycache__
 ../migrations
 /venv
+/public/uploads/documents

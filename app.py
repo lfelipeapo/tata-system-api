@@ -1,16 +1,21 @@
+
+import os
 from flask_cors import CORS
-from flask import redirect, __name__
+from flask import redirect, request, __name__
 from flask_migrate import Migrate
 from flask_openapi3 import OpenAPI, Info, Tag
 from flask_sqlalchemy import SQLAlchemy
+from flask_uploads import configure_uploads
+import jwt
+
+from controllers import *
 from models.database import db_url
 from models.fuso_horario import exp
 from models.consultas_juridicas import ConsultaJuridica
 from models.clientes import Cliente
+from models.upload import documents
 from models.users import User
 from models.documentos import Documento
-import jwt
-from controllers import *
 from schemas import *
 
 info = Info(title="Thata System API", version='1.0.0')
@@ -26,6 +31,10 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JSON_AS_ASCII'] = False
 app.config['JSONIFY_MIMETYPE'] = 'application/json; charset=utf-8'
 app.config['BABEL_DEFAULT_TIMEZONE'] = 'America/Sao_Paulo'
+app.config['UPLOADED_DOCUMENTS_DEST'] = os.path.abspath('public/uploads/documents')
+
+# Configuração Uploads Local
+configure_uploads(app, documents)
 
 # Definir tags
 home_tag = Tag(name="Documentação",
@@ -229,6 +238,25 @@ def obter_todos_documentos():
     """Obtém todos os Documentos.
     """
     return documentos_controller.obter_todos_documentos()
+@app.post('/documento/upload', tags=[documento_tag],
+          responses={"200": MensagemResposta, "400": MensagemResposta, "422": MensagemResposta})
+def upload_route():
+    """Faz o upload de um documento PDF.
+
+    Retorna uma mensagem de sucesso ou erro.
+    """
+    documento = request.files.get('documento')
+    local_ou_samba = request.form.get('local_ou_samba')
+
+    if not documento:
+        return {"mensagem": "Nenhum arquivo foi enviado"}, 400
+    if not local_ou_samba:
+        return {"mensagem": "Parâmetro 'local_ou_samba' não fornecido"}, 400
+
+    try:
+        return documentos_controller.upload_documento(documento, local_ou_samba)
+    except Exception as e:
+        return {"mensagem": f"Erro ao fazer upload: {str(e)}"}, 500
 
 @app.post('/user/create', tags=[usuario_tag],
           responses={"201": UserViewSchema, "400": MensagemResposta, "422": MensagemResposta})

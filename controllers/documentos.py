@@ -14,7 +14,7 @@ class DocumentoController:
     def criar_documento(self, documento: Documento):
         session = Session()
         
-        if not documento.documento_nome or not documento.cliente_id or not documento.consulta_id or documento.documento_localizacao and documento.documento_url:
+        if not documento.documento_nome or not documento.cliente_id or documento.documento_localizacao and documento.documento_url:
             return {'mensagem': 'Parâmetros obrigatórios não informados'}, 400
         try:
             
@@ -33,7 +33,7 @@ class DocumentoController:
     def atualizar_documento(self, id: int, documento_nome: str, cliente_id: int, consulta_id: int, documento_localizacao: Union[str, None] = None, documento_url: Union[str, None] = None):
         session = Session()
         
-        if not id or not documento_nome or not cliente_id or not consulta_id or documento_localizacao and documento_url:
+        if not id or not documento_nome or not cliente_id or documento_localizacao and documento_url:
             return {'mensagem': 'Parâmetros obrigatórios não informados'}, 400
 
         try:
@@ -128,6 +128,13 @@ class DocumentoController:
                 documento.save(file_path)
                 if not os.path.exists(file_path):
                     return {"mensagem": "Erro ao salvar o arquivo localmente"}, 500
+                return {
+                    "mensagem": "Documento enviado com sucesso",
+                    "detalhes": {
+                        "nome_arquivo": filename,
+                        "documento_localizacao": file_path
+                    }
+                }, 200
 
             elif local_ou_samba == 'samba':
                 load_dotenv()
@@ -161,10 +168,16 @@ class DocumentoController:
                 if not any(file.filename == filename for file in files_on_samba):
                     return {"mensagem": "Erro ao salvar o arquivo no samba"}, 500
 
+                return {
+                    "mensagem": "Documento enviado com sucesso",
+                    "detalhes": {
+                        "nome_arquivo": filename,
+                        "documento_url": f"smb://{server_name}/{share_name}/{remote_file_path}"
+                    }
+                }, 200
+
             else:
                 return {"mensagem": "Opção inválida para 'local_ou_samba'"}, 400
-
-            return {"mensagem": "Documento enviado com sucesso"}, 200
 
         except Exception as e:
             return {"mensagem": f"Ocorreu um erro: {e}"}, 500

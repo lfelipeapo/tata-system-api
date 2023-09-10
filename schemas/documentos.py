@@ -8,7 +8,7 @@ class DocumentoSchema(BaseModel):
     documento_localizacao: Optional[str]
     documento_url: Optional[str]
     cliente_id: int
-    consulta_id: int
+    consulta_id: Optional[int]
 
 class DocumentoViewSchema(BaseModel):
     """ Define como deve ser a estrutura de visualização de um documento.
@@ -18,7 +18,7 @@ class DocumentoViewSchema(BaseModel):
     documento_localizacao: Optional[str]
     documento_url: Optional[str]
     cliente_id: int
-    consulta_id: int
+    consulta_id: Optional[int]
 
 class DocumentoListagemSchema(BaseModel):
     """ Define como uma lista de documentos será retornada.

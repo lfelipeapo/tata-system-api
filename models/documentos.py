@@ -12,7 +12,7 @@ class Documento(Base):
     documento_localizacao = Column(String(200))
     documento_url = Column(String(200))
     cliente_id = Column(Integer, ForeignKey('cliente.id', ondelete='CASCADE'))
-    consulta_id = Column(Integer, ForeignKey('consulta_juridica.pk_consulta'))
+    consulta_id = Column(Integer, ForeignKey('consulta_juridica.pk_consulta'), nullable=True)
 
     cliente = relationship('Cliente', backref='documentos')
     consulta = relationship('ConsultaJuridica', backref='documentos')

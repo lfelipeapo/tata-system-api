@@ -356,6 +356,20 @@ PUT /cliente: Atualiza um cliente existente.
 
 GET /clientes: Obtém todos os clientes ou clientes filtrados por nome, CPF, data de cadastro ou data de atualização.
 
+## Documento
+Endpoints para a criação, atualização, exclusão e obtenção de documentos.
+
+DELETE /documento: Exclui um Documento.
+
+GET /documento: Obtém um Documento pelo ID.
+
+POST /documento: Cria um novo Documento.
+
+PUT /documento: Atualiza um Documento existente.
+
+POST /documento/upload: Faz o upload de um documento PDF.
+
+GET /documentos: Obtém todos os Documentos.
 ## Usuário
 Endpoints para a criação, atualização, exclusão, obtenção e autenticação de usuários.
 

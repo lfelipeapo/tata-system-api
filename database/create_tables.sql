@@ -28,3 +28,15 @@ CREATE TABLE users (
     name VARCHAR(64),
     image VARCHAR(200)
 );
+
+-- Criação da tabela Documento
+CREATE TABLE documento (
+    id SERIAL PRIMARY KEY,
+    documento_nome VARCHAR(200) NOT NULL,
+    documento_localizacao VARCHAR(200),
+    documento_url VARCHAR(200),
+    cliente_id INTEGER,
+    consulta_id INTEGER,
+    FOREIGN KEY (cliente_id) REFERENCES cliente (id) ON DELETE CASCADE,
+    FOREIGN KEY (consulta_id) REFERENCES consulta_juridica (pk_consulta) ON DELETE CASCADE
+);

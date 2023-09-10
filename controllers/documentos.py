@@ -107,7 +107,7 @@ class DocumentoController:
         finally:
             session.close()
 
-    def upload_documento(self, documento: FileStorage, local_ou_samba: str) -> Tuple[dict, int]:
+    def upload_documento(self, documento: FileStorage, local_ou_samba: str, nome_cliente: str) -> Tuple[dict, int]:
         if not documento:
             return {"mensagem": "Nenhum arquivo foi enviado"}, 400
 
@@ -121,7 +121,10 @@ class DocumentoController:
 
         try:
             if local_ou_samba == 'local':
-                file_path = os.path.join(documents.config.destination, filename)
+                cliente_path = os.path.join(documents.config.destination, nome_cliente)
+                if not os.path.exists(cliente_path):
+                    os.makedirs(cliente_path)
+                file_path = os.path.join(cliente_path, filename)
                 documento.save(file_path)
                 if not os.path.exists(file_path):
                     return {"mensagem": "Erro ao salvar o arquivo localmente"}, 500
@@ -132,7 +135,6 @@ class DocumentoController:
                 username = os.getenv('USERNAME')
                 password = os.getenv('PASSWORD')
                 share_name = os.getenv('SHARENAME')
-                # samba_path = os.path.join(share_name, filename)
                 machine_name = os.getenv('MACHINE_NAME')
                 server_ip = os.getenv('SERVER_IP')
                 remote_path = os.getenv('REMOTE_PATH')
@@ -143,15 +145,19 @@ class DocumentoController:
                     return {"mensagem": "Erro ao conectar ao servidor Samba"}, 500
 
                 else:
-                    file_path = os.path.join(documents.config.destination, filename)
+                    cliente_path = os.path.join(documents.config.destination, nome_cliente)
+                    if not os.path.exists(cliente_path):
+                        os.makedirs(cliente_path)
+                    file_path = os.path.join(cliente_path, filename)
                     documento.save(file_path)
 
-                    remote_file_path = os.path.join(remote_path, filename)
+                    remote_cliente_path = os.path.join(remote_path, nome_cliente)
+                    remote_file_path = os.path.join(remote_cliente_path, filename)
 
                     with open(file_path, 'rb') as file_obj:
                         conn.storeFile(share_name, remote_file_path, file_obj)
 
-                    files_on_samba = conn.listPath(share_name, remote_path)
+                    files_on_samba = conn.listPath(share_name, remote_cliente_path)
                 if not any(file.filename == filename for file in files_on_samba):
                     return {"mensagem": "Erro ao salvar o arquivo no samba"}, 500
 

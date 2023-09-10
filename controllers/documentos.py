@@ -11,13 +11,14 @@ from dotenv import load_dotenv
 
 class DocumentoController:
 
-    def criar_documento(self, documento: Documento):
+    def criar_documento(self, documento_nome: str, cliente_id: int, consulta_id: Union[int, None] = None, documento_localizacao: Union[str, None] = None, documento_url: Union[str, None] = None):
         session = Session()
         
-        if not documento.documento_nome or not documento.cliente_id or documento.documento_localizacao and documento.documento_url:
+        
+        if not documento_nome or not cliente_id or not documento_localizacao and not documento_url:
             return {'mensagem': 'Parâmetros obrigatórios não informados'}, 400
         try:
-            
+            documento = Documento(documento_nome=documento_nome, cliente_id=cliente_id, consulta_id=consulta_id, documento_localizacao=documento_localizacao, documento_url=documento_url)
             session.add(documento)
             session.commit()
             
@@ -30,16 +31,17 @@ class DocumentoController:
         finally:
             session.close()
 
-    def atualizar_documento(self, id: int, documento_nome: str, cliente_id: int, consulta_id: int, documento_localizacao: Union[str, None] = None, documento_url: Union[str, None] = None):
+    def atualizar_documento(self, id: int, documento_nome: str, cliente_id: int, consulta_id: Union[int, None] = None, documento_localizacao: Union[str, None] = None, documento_url: Union[str, None] = None):
         session = Session()
         
-        if not id or not documento_nome or not cliente_id or documento_localizacao and documento_url:
+        if not id or not documento_nome or not cliente_id or not documento_localizacao and not documento_url:
             return {'mensagem': 'Parâmetros obrigatórios não informados'}, 400
 
         try:
             documento = session.query(Documento).get(id)
             if not documento:
                 return {'mensagem': "Documento não encontrado"}, 404
+            
             documento.documento_nome = documento_nome
             documento.cliente_id = cliente_id
             documento.consulta_id = consulta_id

@@ -207,7 +207,7 @@ def criar_documento(body: DocumentoSchema):
 
     Retorna um novo documento criado.
     """
-    return documentos_controller.criar_documento(Documento(**body))
+    return documentos_controller.criar_documento(body.documento_nome, body.cliente_id, body.consulta_id, body.documento_localizacao, body.documento_url)
 
 @app.put('/documento', tags=[documento_tag],
          responses={"200": DocumentoViewSchema, "404": MensagemResposta, "409": MensagemResposta, "422": MensagemResposta})
@@ -216,7 +216,7 @@ def atualizar_documento(body: DocumentoAtualizadoSchema):
 
     Retorna uma representação de um documento atualizado.
     """
-    return documentos_controller.atualizar_documento(**body)
+    return documentos_controller.atualizar_documento(body.id, body.documento_nome, body.cliente_id, body.consulta_id, body.documento_localizacao, body.documento_url)
 
 @app.delete('/documento', tags=[documento_tag],
             responses={"200": MensagemResposta, "404": MensagemResposta})
@@ -247,14 +247,17 @@ def upload_route():
     """
     documento = request.files.get('documento')
     local_ou_samba = request.form.get('local_ou_samba')
+    nome_cliente = request.form.get('nome_cliente')
 
     if not documento:
         return {"mensagem": "Nenhum arquivo foi enviado"}, 400
     if not local_ou_samba:
         return {"mensagem": "Parâmetro 'local_ou_samba' não fornecido"}, 400
+    if not nome_cliente:
+        return {"mensagem": "Parâmetro 'nome_cliente' não fornecido"}, 400
 
     try:
-        return documentos_controller.upload_documento(documento, local_ou_samba)
+        return documentos_controller.upload_documento(documento, local_ou_samba, nome_cliente)
     except Exception as e:
         return {"mensagem": f"Erro ao fazer upload: {str(e)}"}, 500
 

@@ -15,7 +15,7 @@ class DocumentoController:
         session = Session()
         
         
-        if not documento_nome or not cliente_id or not documento_localizacao and not documento_url:
+        if not documento_nome or not cliente_id or (not documento_localizacao and not documento_url):
             return {'mensagem': 'Parâmetros obrigatórios não informados'}, 400
         try:
             documento = Documento(documento_nome=documento_nome, cliente_id=cliente_id, consulta_id=consulta_id, documento_localizacao=documento_localizacao, documento_url=documento_url)
@@ -34,7 +34,7 @@ class DocumentoController:
     def atualizar_documento(self, id: int, documento_nome: str, cliente_id: int, consulta_id: Union[int, None] = None, documento_localizacao: Union[str, None] = None, documento_url: Union[str, None] = None):
         session = Session()
         
-        if not id or not documento_nome or not cliente_id or not documento_localizacao and not documento_url:
+        if not id or not documento_nome or not cliente_id or (not documento_localizacao and not documento_url):
             return {'mensagem': 'Parâmetros obrigatórios não informados'}, 400
 
         try:
@@ -70,9 +70,10 @@ class DocumentoController:
             documento = session.query(Documento).get(id)
             if not documento:
                 return {'mensagem': 'Documento não encontrado'}, 404
+            documento_id = documento.id
             session.delete(documento)
             session.commit()
-            return {'mensagem': 'Documento' + documento.id + "excluído com sucesso!"}, 200
+            return {'mensagem': 'Documento ' + str(documento_id) + " excluído com sucesso!"}, 200
         except Exception as e:
             session.rollback()
             return {'mensagem': "Erro: " + str(e)}, 400

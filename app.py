@@ -190,7 +190,6 @@ def obter_clientes(query: ClientesFiltradosSchema):
                                               query.data_atualizacao
                                               )
 
-
 @app.get('/cliente', tags=[cliente_tag],
          responses={"200": ClienteViewSchema, "404": MensagemResposta, "422": MensagemResposta})
 def obter_cliente_por_id(query: ClienteBuscaSchema):
@@ -260,6 +259,45 @@ def upload_route():
         return documentos_controller.upload_documento(documento, local_ou_samba, nome_cliente)
     except Exception as e:
         return {"mensagem": f"Erro ao fazer upload: {str(e)}"}, 500
+
+@app.put('/documento/armazenamento', tags=[documento_tag],
+         responses={"200": MensagemResposta, "400": MensagemResposta, "404": MensagemResposta, "422": MensagemResposta})
+def atualizar_documento_no_armazenamento_route(body: DocumentoAtualizadoComArquivoSchema):
+    """Atualiza um Documento no armazenamento.
+
+    Retorna uma mensagem de sucesso ou erro.
+    """
+    documento = request.files.get('documento')
+    local_ou_samba = request.form.get('local_ou_samba')
+    nome_cliente = request.form.get('nome_cliente')
+    filename_antigo = request.form.get('filename_antigo')
+
+    if not documento or not local_ou_samba or not nome_cliente or not filename_antigo:
+        return {"mensagem": "Parâmetros obrigatórios não fornecidos"}, 400
+
+    try:
+        return documentos_controller.atualizar_documento_no_armazenamento(documento, local_ou_samba, nome_cliente, filename_antigo)
+    except Exception as e:
+        return {"mensagem": f"Erro ao atualizar documento: {str(e)}"}, 500
+
+@app.delete('/documento/armazenamento', tags=[documento_tag],
+            responses={"200": MensagemResposta, "400": MensagemResposta, "404": MensagemResposta})
+def excluir_documento_do_armazenamento_route(query: DocumentoExclusaoArmazenamentoSchema):
+    """Exclui um Documento do armazenamento.
+
+    Retorna uma mensagem de sucesso ou erro.
+    """
+    local_ou_samba = query.local_ou_samba
+    nome_cliente = query.nome_cliente
+    filename = query.filename
+
+    if not local_ou_samba or not nome_cliente or not filename:
+        return {"mensagem": "Parâmetros obrigatórios não fornecidos"}, 400
+
+    try:
+        return documentos_controller.excluir_documento_do_armazenamento(local_ou_samba, nome_cliente, filename)
+    except Exception as e:
+        return {"mensagem": f"Erro ao excluir documento: {str(e)}"}, 500
 
 @app.post('/user/create', tags=[usuario_tag],
           responses={"201": UserViewSchema, "400": MensagemResposta, "422": MensagemResposta})

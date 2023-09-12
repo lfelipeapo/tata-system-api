@@ -1,11 +1,12 @@
 
 import os
 from flask_cors import CORS
-from flask import redirect, request, __name__
+from flask import redirect, request, send_from_directory, __name__, url_for
 from flask_migrate import Migrate
 from flask_openapi3 import OpenAPI, Info, Tag
 from flask_sqlalchemy import SQLAlchemy
-from flask_uploads import configure_uploads
+from flask_uploads import UploadSet, IMAGES, configure_uploads
+
 import jwt
 
 from controllers import *
@@ -22,6 +23,7 @@ info = Info(title="Thata System API", version='1.0.0')
 app = OpenAPI(__name__, info=info)
 db = SQLAlchemy()
 migrate = Migrate(app, db)
+images = UploadSet('images', IMAGES)
 db.init_app(app)
 CORS(app)
 
@@ -32,20 +34,19 @@ app.config['JSON_AS_ASCII'] = False
 app.config['JSONIFY_MIMETYPE'] = 'application/json; charset=utf-8'
 app.config['BABEL_DEFAULT_TIMEZONE'] = 'America/Sao_Paulo'
 app.config['UPLOADED_DOCUMENTS_DEST'] = os.path.abspath('public/uploads/documents')
+app.config['UPLOADED_IMAGES_DEST'] = os.path.abspath('public/uploads/images')
 
 # Configuração Uploads Local
 configure_uploads(app, documents)
+configure_uploads(app, images)
 
 # Definir tags
-home_tag = Tag(name="Documentação",
-               description="Seleção de documentação: Swagger, Redoc ou RapiDoc")
-consulta_tag = Tag(name="Consulta Jurídica",
-                   description="Criação, atualização, exclusão e obtenção de consultas jurídicas")
-cliente_tag = Tag(
-    name="Cliente", description="Criação, atualização, exclusão e obtenção de clientes")
+home_tag = Tag(name="Documentação", description="Seleção de documentação: Swagger, Redoc ou RapiDoc")
+consulta_tag = Tag(name="Consulta Jurídica", description="Criação, atualização, exclusão e obtenção de consultas jurídicas")
+cliente_tag = Tag(name="Cliente", description="Criação, atualização, exclusão e obtenção de clientes")
 documento_tag = Tag(name="Documento", description="Criação, atualização, exclusão e obtenção de documentos")
-usuario_tag = Tag(
-    name="Usuário", description="Criação, atualização, exclusão, obtenção e autenticação de usuários")
+image_tag = Tag(name="Image", description="Upload de imagens")
+usuario_tag = Tag(name="Usuário", description="Criação, atualização, exclusão, obtenção e autenticação de usuários")
 
 # Inicializar os controladores
 consultas_controller = ConsultaJuridicaController()
@@ -54,7 +55,6 @@ documentos_controller = DocumentoController()
 users_controller = UserController()
 
 # Rotas
-
 @app.get('/', tags=[home_tag])
 def home():
     """Redireciona para /openapi, tela que permite a escolha do estilo de documentação.
@@ -307,6 +307,23 @@ def create_user(body: UserSchema):
     Retorna uma representação do usuário salvo no banco de dados.
     """
     return users_controller.create_user(body.username, body.password, body.name, body.image)
+
+@app.route('/uploads/images/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOADED_IMAGES_DEST'], filename)
+
+@app.post('/upload/image', tags=[image_tag])
+def upload_image():
+    if 'image' not in request.files:
+        return {"mensagem": "Nenhum arquivo foi enviado"}, 400
+
+    image = request.files['image']
+    filename = images.save(image)
+    server_url = request.url_root
+    relative_path = url_for('uploaded_file', filename=filename)
+    full_url = server_url.rstrip('/') + relative_path
+    return {"url": full_url}, 200
+
 
 @app.post('/user/authenticate', tags=[usuario_tag],
           responses={"200": UserViewSchema, "401": MensagemResposta})

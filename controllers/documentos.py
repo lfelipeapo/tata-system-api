@@ -200,20 +200,27 @@ class DocumentoController:
                 if not conn.connect(server_ip, 445):
                     return {"mensagem": "Erro ao conectar ao servidor Samba"}, 500
 
-                else:
-                    cliente_path = os.path.join(documents.config.destination, nome_cliente)
-                    if not os.path.exists(cliente_path):
-                        os.makedirs(cliente_path)
-                    file_path = os.path.join(cliente_path, filename)
-                    documento.save(file_path)
+                cliente_path = os.path.join(documents.config.destination, nome_cliente)
+                if not os.path.exists(cliente_path):
+                    os.makedirs(cliente_path)
+                file_path = os.path.join(cliente_path, filename)
+                documento.save(file_path)
 
-                    remote_cliente_path = os.path.join(remote_path, nome_cliente)
-                    remote_file_path = os.path.join(remote_cliente_path, filename)
+                remote_cliente_path = os.path.join(remote_path, nome_cliente)
+                
+                # Verifique se a subpasta com o nome do cliente existe no servidor Samba
+                try:
+                    conn.listPath(share_name, remote_cliente_path)
+                except:
+                    # Se a subpasta não existir, crie-a
+                    conn.createDirectory(share_name, remote_cliente_path)
 
-                    with open(file_path, 'rb') as file_obj:
-                        conn.storeFile(share_name, remote_file_path, file_obj)
+                remote_file_path = os.path.join(remote_cliente_path, filename)
 
-                    files_on_samba = conn.listPath(share_name, remote_cliente_path)
+                with open(file_path, 'rb') as file_obj:
+                    conn.storeFile(share_name, remote_file_path, file_obj)
+
+                files_on_samba = conn.listPath(share_name, remote_cliente_path)
                 if not any(file.filename == filename for file in files_on_samba):
                     return {"mensagem": "Erro ao salvar o arquivo no samba"}, 500
 

@@ -4,3 +4,4 @@ __pycache__
 ../migrations
 /venv
 /public/uploads/documents
+/public/uploads/images

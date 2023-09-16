@@ -55,7 +55,7 @@ Para rodar o projeto é necessário a instalação de Docker:
 
 1. Navegue até o diretório do projeto no terminal.
 
-2. Execute o comando `docker-compose up --build`.
+2. Execute o comando `./start.sh`.
 
 ### Interagir com a API
 

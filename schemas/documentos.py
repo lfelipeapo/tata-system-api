@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, Field, validator
 from typing import List, Optional
 
 class DocumentoSchema(BaseModel):
@@ -33,11 +33,11 @@ class DocumentoAtualizadoSchema(BaseModel):
     documento_localizacao: Optional[str]
     documento_url: Optional[str]
     cliente_id: int
-    consulta_id: int
+    consulta_id: Optional[int]
 
 class DocumentoAtualizadoComArquivoSchema(BaseModel):
     """ Define como deve ser a estrutura de um documento atualizado com arquivo. """
-    documento: bytes
+    documento: str = Field(..., format="binary")
     local_ou_samba: str
     nome_cliente: str
     filename_antigo: str
@@ -59,9 +59,3 @@ class DocumentoExclusaoArmazenamentoSchema(BaseModel):
     local_ou_samba: str
     nome_cliente: str
     filename: str
-
-    @validator('local_ou_samba', 'nome_cliente', 'filename')
-    def validate_fields(cls, v):
-        if not v:
-            raise ValueError("Campo é obrigatório")
-        return v

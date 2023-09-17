@@ -262,7 +262,7 @@ def upload_route():
 
 @app.put('/documento/armazenamento', tags=[documento_tag],
          responses={"200": MensagemResposta, "400": MensagemResposta, "404": MensagemResposta, "422": MensagemResposta})
-def atualizar_documento_no_armazenamento_route(body: DocumentoAtualizadoComArquivoSchema):
+def atualizar_documento_no_armazenamento_route():
     """Atualiza um Documento no armazenamento.
 
     Retorna uma mensagem de sucesso ou erro.
@@ -282,14 +282,14 @@ def atualizar_documento_no_armazenamento_route(body: DocumentoAtualizadoComArqui
 
 @app.delete('/documento/armazenamento', tags=[documento_tag],
             responses={"200": MensagemResposta, "400": MensagemResposta, "404": MensagemResposta})
-def excluir_documento_do_armazenamento_route(query: DocumentoExclusaoArmazenamentoSchema):
+def excluir_documento_do_armazenamento_route(body: DocumentoExclusaoArmazenamentoSchema):
     """Exclui um Documento do armazenamento.
 
     Retorna uma mensagem de sucesso ou erro.
     """
-    local_ou_samba = query.local_ou_samba
-    nome_cliente = query.nome_cliente
-    filename = query.filename
+    local_ou_samba = body.local_ou_samba
+    nome_cliente = body.nome_cliente
+    filename = body.filename
 
     if not local_ou_samba or not nome_cliente or not filename:
         return {"mensagem": "Parâmetros obrigatórios não fornecidos"}, 400

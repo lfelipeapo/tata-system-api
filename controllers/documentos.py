@@ -45,10 +45,8 @@ class DocumentoController:
             documento.documento_nome = documento_nome
             documento.cliente_id = cliente_id
             documento.consulta_id = consulta_id
-            if documento_localizacao:
-                documento.documento_localizacao = documento_localizacao
-            if documento_url:
-                documento.documento_url = documento_url
+            documento.documento_localizacao = documento_localizacao
+            documento.documento_url = documento_url
 
             session.add(documento)
             session.commit()
@@ -144,7 +142,10 @@ class DocumentoController:
                 remote_cliente_path = os.path.join(remote_path, nome_cliente)
                 remote_file_path = os.path.join(remote_cliente_path, filename)
 
-                if conn.fileExists(share_name, remote_file_path):
+                files = conn.listPath(share_name, remote_cliente_path)
+                file_exists = any(file.filename == filename for file in files)
+
+                if file_exists:
                     conn.deleteFiles(share_name, remote_file_path)
                     return {"mensagem": "Documento excluído com sucesso do samba"}, 200
                 else:
@@ -173,6 +174,7 @@ class DocumentoController:
                 cliente_path = os.path.join(documents.config.destination, nome_cliente)
                 if not os.path.exists(cliente_path):
                     os.makedirs(cliente_path)
+                filename = self.get_unique_filename(cliente_path, filename)
                 file_path = os.path.join(cliente_path, filename)
                 documento.save(file_path)
                 if not os.path.exists(file_path):
@@ -180,7 +182,7 @@ class DocumentoController:
                 return {
                     "mensagem": "Documento enviado com sucesso",
                     "detalhes": {
-                        "nome_arquivo": filename,
+                        "nome_arquivo": os.path.basename(file_path),
                         "documento_localizacao": file_path
                     }
                 }, 200
@@ -215,6 +217,7 @@ class DocumentoController:
                     # Se a subpasta não existir, crie-a
                     conn.createDirectory(share_name, remote_cliente_path)
 
+                filename = self.get_unique_filename_samba(conn, share_name, remote_cliente_path, filename)
                 remote_file_path = os.path.join(remote_cliente_path, filename)
 
                 with open(file_path, 'rb') as file_obj:
@@ -227,7 +230,7 @@ class DocumentoController:
                 return {
                     "mensagem": "Documento enviado com sucesso",
                     "detalhes": {
-                        "nome_arquivo": filename,
+                        "nome_arquivo": os.path.basename(remote_file_path),
                         "documento_url": f"smb://{server_name}/{share_name}/{remote_file_path}"
                     }
                 }, 200
@@ -266,3 +269,33 @@ class DocumentoController:
     @staticmethod
     def allowed_file(filename: str) -> bool:
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'pdf'}
+    
+    @staticmethod
+    def file_exists_in_local(cliente_path: str, filename: str) -> bool:
+        """Verifica se um arquivo existe no armazenamento local."""
+        file_path = os.path.join(cliente_path, filename)
+        return os.path.exists(file_path)
+
+    def get_unique_filename(self, cliente_path: str, filename: str) -> str:
+        """Retorna um nome de arquivo único para evitar sobrescrita."""
+        base_name, ext = os.path.splitext(filename)
+        counter = 1
+        while self.file_exists_in_local(cliente_path, filename):
+            filename = f"{base_name}_{counter}{ext}"
+            counter += 1
+        return filename
+
+    @staticmethod
+    def file_exists_in_samba(conn, share_name, remote_cliente_path, filename) -> bool:
+        """Verifica se um arquivo existe no Samba."""
+        files = conn.listPath(share_name, remote_cliente_path)
+        return any(file.filename == filename for file in files)
+    
+    def get_unique_filename_samba(self, conn, share_name, remote_cliente_path, filename) -> str:
+        """Retorna um nome de arquivo único para evitar sobrescrita no Samba."""
+        base_name, ext = os.path.splitext(filename)
+        counter = 1
+        while self.file_exists_in_samba(conn, share_name, remote_cliente_path, filename):
+            filename = f"{base_name}_{counter}{ext}"
+            counter += 1
+        return filename

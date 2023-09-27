@@ -40,3 +40,12 @@ CREATE TABLE documento (
     FOREIGN KEY (cliente_id) REFERENCES cliente (id) ON DELETE CASCADE,
     FOREIGN KEY (consulta_id) REFERENCES consulta_juridica (pk_consulta) ON DELETE CASCADE
 );
+
+CREATE TABLE peca_processual (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    documento_url VARCHAR(255),  
+    documento_localizacao VARCHAR(255), 
+    categoria VARCHAR(100) NOT NULL, 
+    nome_peca VARCHAR(150) NOT NULL 
+);
+

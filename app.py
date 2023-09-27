@@ -15,6 +15,7 @@ from models.fuso_horario import exp
 from models.consultas_juridicas import ConsultaJuridica
 from models.clientes import Cliente
 from models.upload import documents
+from models.upload import pecas
 from models.users import User
 from models.documentos import Documento
 from schemas import *
@@ -35,10 +36,12 @@ app.config['JSONIFY_MIMETYPE'] = 'application/json; charset=utf-8'
 app.config['BABEL_DEFAULT_TIMEZONE'] = 'America/Sao_Paulo'
 app.config['UPLOADED_DOCUMENTS_DEST'] = os.path.abspath('public/uploads/documents')
 app.config['UPLOADED_IMAGES_DEST'] = os.path.abspath('public/uploads/images')
+app.config['UPLOADED_PECAS_DEST'] = os.path.abspath('public/uploads/pecas')
 
 # Configuração Uploads Local
 configure_uploads(app, documents)
 configure_uploads(app, images)
+configure_uploads(app, pecas)
 
 # Definir tags
 home_tag = Tag(name="Documentação", description="Seleção de documentação: Swagger, Redoc ou RapiDoc")
@@ -47,11 +50,13 @@ cliente_tag = Tag(name="Cliente", description="Criação, atualização, exclus�
 documento_tag = Tag(name="Documento", description="Criação, atualização, exclusão e obtenção de documentos")
 image_tag = Tag(name="Image", description="Upload de imagens")
 usuario_tag = Tag(name="Usuário", description="Criação, atualização, exclusão, obtenção e autenticação de usuários")
+peca_tag = Tag(name="PecaProcessual", description="Criação, atualização, exclusão e obtenção de peças processuais")
 
 # Inicializar os controladores
 consultas_controller = ConsultaJuridicaController()
 clientes_controller = ClientesController()
 documentos_controller = DocumentoController()
+pecas_processuais_controller = PecaProcessualController()
 users_controller = UserController()
 
 # Rotas
@@ -269,14 +274,15 @@ def atualizar_documento_no_armazenamento_route():
     """
     documento = request.files.get('documento')
     local_ou_samba = request.form.get('local_ou_samba')
+    local_ou_samba_antigo = request.form.get('local_ou_samba_antigo')
     nome_cliente = request.form.get('nome_cliente')
     filename_antigo = request.form.get('filename_antigo')
 
-    if not documento or not local_ou_samba or not nome_cliente or not filename_antigo:
+    if not documento or not local_ou_samba or not local_ou_samba_antigo or not nome_cliente or not filename_antigo:
         return {"mensagem": "Parâmetros obrigatórios não fornecidos"}, 400
 
     try:
-        return documentos_controller.atualizar_documento_no_armazenamento(documento, local_ou_samba, nome_cliente, filename_antigo)
+        return documentos_controller.atualizar_documento_no_armazenamento(documento, local_ou_samba, local_ou_samba_antigo, nome_cliente, filename_antigo)
     except Exception as e:
         return {"mensagem": f"Erro ao atualizar documento: {str(e)}"}, 500
 
@@ -383,6 +389,104 @@ def obter_users():
     """
     return users_controller.obter_users()
 
+@app.post('/peca-processual', tags=[peca_tag],
+          responses={"200": PecaProcessualViewSchema, "400": MensagemResposta, "409": MensagemResposta, "422": MensagemResposta})
+def criar_peca_processual(body: PecaProcessualSchema):
+    """Cria uma nova Peça Processual.
+    
+    Retorna uma nova peça processual criada.
+    """
+    return pecas_processuais_controller.criar_peca(body.categoria, body.nome_peca, body.documento_localizacao, body.documento_url)
+
+@app.put('/peca-processual', tags=[peca_tag],
+         responses={"200": PecaProcessualViewSchema, "404": MensagemResposta, "409": MensagemResposta, "422": MensagemResposta})
+def atualizar_peca_processual(body: PecaProcessualAtualizadoSchema):
+    """Atualiza uma Peça Processual existente.
+    
+    Retorna uma representação de uma peça processual atualizada.
+    """
+    return pecas_processuais_controller.atualizar_peca(body.id, body.categoria, body.nome_peca, body.documento_localizacao, body.documento_url)
+
+@app.delete('/peca-processual', tags=[peca_tag],
+            responses={"200": MensagemResposta, "404": MensagemResposta})
+def excluir_peca_processual(query: PecaProcessualBuscaSchema):
+    """Exclui uma Peça Processual.
+    """
+    return pecas_processuais_controller.deletar_peca(query.peca_id)
+
+@app.get('/peca-processual', tags=[peca_tag],
+         responses={"200": PecaProcessualViewSchema, "404": MensagemResposta})
+def obter_peca_processual_por_id(query: PecaProcessualBuscaSchema):
+    """Obtém uma Peça Processual pelo ID.
+    """
+    return pecas_processuais_controller.obter_peca(query.peca_id)
+
+@app.get('/pecas-processuais', tags=[peca_tag],
+         responses={"200": PecaProcessualListagemSchema, "404": MensagemResposta})
+def obter_todas_pecas_processuais():
+    """Obtém todas as Peças Processuais.
+    """
+    return pecas_processuais_controller.obter_pecas()
+
+
+@app.post('/peca/upload', tags=[peca_tag],
+          responses={"200": MensagemResposta, "400": MensagemResposta, "422": MensagemResposta})
+def upload_peca_route():
+    """Faz o upload de uma peça processual PDF.
+    Retorna uma mensagem de sucesso ou erro.
+    """
+    peca = request.files.get('peca')
+    local_ou_samba = request.form.get('local_ou_samba')
+    categoria = request.form.get('categoria')
+
+    if not peca:
+        return {"mensagem": "Nenhum arquivo foi enviado"}, 400
+    if not local_ou_samba:
+        return {"mensagem": "Parâmetro 'local_ou_samba' não fornecido"}, 400
+    if not categoria:
+        return {"mensagem": "Parâmetro 'categoria' não fornecido"}, 400
+    
+    try:
+        return pecas_processuais_controller.upload_peca(peca, local_ou_samba, categoria)
+    except Exception as e:
+        return {"mensagem": f"Erro ao fazer upload: {str(e)}"}, 500
+
+@app.put('/peca/armazenamento', tags=[peca_tag],
+         responses={"200": MensagemResposta, "400": MensagemResposta, "404": MensagemResposta, "422": MensagemResposta})
+def atualizar_peca_no_armazenamento_route():
+    """Atualiza uma Peça no armazenamento.
+    Retorna uma mensagem de sucesso ou erro.
+    """
+    peca = request.files.get('peca')
+    local_ou_samba = request.form.get('local_ou_samba')
+    local_ou_samba_antigo = request.form.get('local_ou_samba_antigo')
+    categoria = request.form.get('categoria')
+    filename_antigo = request.form.get('filename_antigo')
+
+    if not peca or not local_ou_samba or not local_ou_samba_antigo or not categoria or not filename_antigo:
+        return {"mensagem": "Parâmetros obrigatórios não fornecidos"}, 400
+    try:
+        return pecas_processuais_controller.atualizar_peca_no_armazenamento(peca, local_ou_samba, local_ou_samba_antigo, categoria, filename_antigo)
+    except Exception as e:
+        return {"mensagem": f"Erro ao atualizar peça: {str(e)}"}, 500
+
+@app.delete('/peca/armazenamento', tags=[peca_tag],
+            responses={"200": MensagemResposta, "400": MensagemResposta, "404": MensagemResposta})
+def excluir_peca_do_armazenamento_route(body: PecaProcessualExclusaoArmazenamentoSchema):
+    """Exclui uma Peça do armazenamento.
+    Retorna uma mensagem de sucesso ou erro.
+    """
+    local_ou_samba = body.local_ou_samba
+    categoria = body.categoria
+    filename = body.filename
+
+    if not local_ou_samba or not categoria or not filename:
+        return {"mensagem": "Parâmetros obrigatórios não fornecidos"}, 400
+
+    try:
+        return pecas_processuais_controller.excluir_peca_do_armazenamento(body.local_ou_samba, body.categoria, body.filename)
+    except Exception as e:
+        return {"mensagem": f"Erro ao excluir peça: {str(e)}"}, 500
 
 if __name__ == '__main__':
     app.run(debug=True)

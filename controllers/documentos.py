@@ -108,8 +108,11 @@ class DocumentoController:
         finally:
             session.close()
             
-    def atualizar_documento_no_armazenamento(self, documento: FileStorage, local_ou_samba: str, nome_cliente: str, filename_antigo: str) -> Tuple[dict, int]:
-        self.excluir_documento_do_armazenamento(local_ou_samba, nome_cliente, filename_antigo)
+    def atualizar_documento_no_armazenamento(self, documento: FileStorage, local_ou_samba: str, local_ou_samba_antigo: str, nome_cliente: str, filename_antigo: str) -> Tuple[dict, int]:
+        delete_result, delete_status = self.excluir_documento_do_armazenamento(local_ou_samba_antigo, nome_cliente, filename_antigo)
+        
+        if delete_status != 200:
+            return delete_result, delete_status
         
         return self.upload_documento(documento, local_ou_samba, nome_cliente)
 

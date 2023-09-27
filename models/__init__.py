@@ -9,6 +9,7 @@ from models.fuso_horario import now_saopaulo
 from models.database import engine, Session
 from models.documentos import Documento
 from models.users import User
+from models.peca_processual import PecaProcessual
 
 db_path = "database/"
 

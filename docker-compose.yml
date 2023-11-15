@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: sh -c "dockerize -wait tcp://db:5432 -timeout 60s && flask db init && flask db migrate && flask run --host 0.0.0.0 --port 5000 --reload"
+    command: sh -c "./wait-for-it.sh db:5432 --timeout=60 -- flask db init && flask db migrate && flask run --host 0.0.0.0 --port 5000 --reload"
     ports:
       - '5000:5000'
     volumes:

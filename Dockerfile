@@ -4,19 +4,21 @@ FROM python:3.9
 # Define o diretório de trabalho dentro do contêiner
 WORKDIR /app
 
-# Copia os arquivos de código-fonte e o script de instalação para o diretório de trabalho
+# Copia os arquivos de código-fonte para o diretório de trabalho
 COPY . /app
-COPY install_dockerize.sh /app
 
+# Lista os arquivos no diretório (opcional, para fins de depuração)
 RUN ls -la
 
+# Remove o diretório migrations, se necessário
 RUN rm -rf migrations
 
 # Instala as dependências do projeto
 RUN pip install -r requirements.txt
 
-# Torna o script de instalação executável e executa-o
-RUN chmod +x /app/install_dockerize.sh && /app/install_dockerize.sh
+# Baixa o script wait-for-it e o torna executável
+RUN wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh
+RUN chmod +x wait-for-it.sh
 
 # Expõe a porta 5000 para acessar a API
 EXPOSE 5000

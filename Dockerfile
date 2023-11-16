@@ -7,6 +7,8 @@ WORKDIR /app
 # Copia os arquivos de código-fonte e o script wait-for-it para o diretório de trabalho
 COPY . /app
 COPY wait-for-it.sh /app/
+
+# Torna o script wait-for-it.sh executável
 RUN chmod +x /app/wait-for-it.sh
 
 # Lista os arquivos no diretório (opcional, para fins de depuração)

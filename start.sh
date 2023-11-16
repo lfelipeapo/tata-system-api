@@ -8,4 +8,4 @@ chmod +x build.sh
 ./build.sh
 
 # Inicie o Docker Compose
-docker compose up --build
+docker compose up -d --build

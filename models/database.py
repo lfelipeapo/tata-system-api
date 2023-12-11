@@ -4,7 +4,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
 #Carrega as variáveis de ambiente:
-load_dotenv()
+project_dir = os.path.abspath(os.path.dirname(__file__))
+dotenv_path = os.path.join(project_dir, '..', '.env')
+load_dotenv(dotenv_path)
 
 user = os.getenv('POSTGRES_USER')
 password = os.getenv('POSTGRES_PASSWORD')

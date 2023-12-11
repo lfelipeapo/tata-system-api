@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: sh -c "/app/wait-for-it.sh db:5432 --timeout=60 -- flask db init && flask db migrate && flask run --host 0.0.0.0 --port 5000 --reload"
+    command: sh -c "/app/wait-for-it.sh db:5432 --timeout=90 -- flask db init && flask db migrate && flask run --host 0.0.0.0 --port 5000 --reload"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.app.rule=Host(`thatta-api.duckdns.org`)"
@@ -28,6 +28,8 @@ services:
       - POSTGRES_DB=tata
     volumes:
       - db_data:/var/lib/postgresql/data
+    networks:
+      - web
 
 volumes:
   db_data:

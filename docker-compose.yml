@@ -5,10 +5,6 @@ services:
       context: .
       dockerfile: Dockerfile
     command: sh -c "/app/wait-for-it.sh db:5432 --timeout=90 -- flask db init && flask db migrate && flask run --host 0.0.0.0 --port 5000 --reload"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.app.rule=Host(`thatta-api.duckdns.org`)"
-      - "traefik.http.routers.app.entrypoints=web"
     volumes:
       - .:/app
     depends_on:

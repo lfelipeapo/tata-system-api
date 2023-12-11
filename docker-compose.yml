@@ -13,6 +13,8 @@ services:
       - DOCKER_ENV=True
     networks:
       - web
+    ports:
+      - 5000:5000
 
   db:
     image: postgres:13
